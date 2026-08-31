@@ -2,10 +2,11 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="BorgAI" />
+<meta name="theme-color" content="#151920" />
 <title>BorgAI</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -13,79 +14,267 @@
   :root {
     --accent-start: #00f2fe;
     --accent-end: #4facfe;
-    --bg-dark: #1b1f26;
-    --bg-panel: #242933;
-    --fg-text: #e6f1ff;
+    --bg-dark: #14171d;
+    --bg-panel: #1d222b;
+    --bg-elevated: #262c37;
+    --fg-text: #eef4fb;
+    --fg-muted: #8fa1b8;
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
   }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; height: 100%; background: var(--bg-dark); color: var(--fg-text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-  #app { display: flex; flex-direction: column; height: 100dvh; }
-  header {
-    background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-    color: #04141a; font-weight: 700; padding: 14px 16px;
-    padding-top: calc(14px + env(safe-area-inset-top));
-    font-size: 17px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  header img.logo { width: 26px; height: 26px; }
-  header .title { flex: 1; }
-  header .settings-btn {
-    background: none; border: none; padding: 4px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  header .settings-btn svg { width: 22px; height: 22px; stroke: #04141a; }
 
-  #settingsOverlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    display: none; align-items: flex-end; justify-content: center; z-index: 20;
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    position: fixed;
+    overscroll-behavior: none;
+    background: var(--bg-dark);
+    color: var(--fg-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
   }
-  #settingsOverlay.open { display: flex; }
-  #settingsPanel {
-    background: var(--bg-panel); width: 100%; max-width: 480px;
-    border-radius: 16px 16px 0 0; padding: 20px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    width: 100%;
   }
-  #settingsPanel h2 {
-    margin: 0 0 16px 0; font-size: 18px;
-    background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+
+  /* ---------- Header ---------- */
+  header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    padding-top: calc(12px + var(--safe-top));
+    background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+    z-index: 5;
   }
-  .settings-row { margin-bottom: 14px; }
-  .settings-row label { display: block; font-size: 12px; color: #9fb3c8; margin-bottom: 4px; }
-  .settings-row select {
-    width: 100%; padding: 10px; border-radius: 8px; border: none;
-    background: #1b1f26; color: var(--fg-text); font-size: 14px;
+  header img.logo {
+    width: 28px;
+    height: 28px;
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
   }
-  .settings-row .value { font-size: 15px; }
-  .settings-row a { color: var(--accent-end); text-decoration: none; }
-  #closeSettings {
-    display: block; margin-top: 18px; width: 100%; padding: 12px; border: none;
-    border-radius: 10px; font-weight: 700; background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-    color: #04141a;
+  header .title {
+    flex: 1;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.2px;
+    color: #06141c;
   }
-  #chat { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-  .bubble { max-width: 78%; padding: 10px 12px; border-radius: 14px; line-height: 1.4; font-size: 15px; white-space: pre-wrap; }
-  .bubble.ai { align-self: flex-start; background: var(--bg-panel); border-bottom-left-radius: 4px; }
+  header .settings-btn {
+    background: rgba(6, 20, 28, 0.1);
+    border: none;
+    border-radius: 10px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.15s ease;
+  }
+  header .settings-btn:active { background: rgba(6, 20, 28, 0.2); }
+  header .settings-btn svg { width: 19px; height: 19px; stroke: #06141c; }
+
+  /* ---------- Chat ---------- */
+  #chat {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: thin;
+  }
+  #chat::-webkit-scrollbar { width: 5px; }
+  #chat::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 4px; }
+
+  .bubble {
+    max-width: 80%;
+    padding: 11px 14px;
+    border-radius: 16px;
+    line-height: 1.45;
+    font-size: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    animation: rise 0.18s ease-out;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .bubble.ai {
+    align-self: flex-start;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-bottom-left-radius: 4px;
+  }
   .bubble.user {
-    align-self: flex-end; background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-    color: #04141a; border-bottom-right-radius: 4px;
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+    color: #06141c;
+    font-weight: 500;
+    border-bottom-right-radius: 4px;
   }
+
+  .typing {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 11px 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+  }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--fg-muted);
+    animation: pulse 1.1s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes pulse {
+    0%, 60%, 100% { opacity: 0.3; transform: scale(0.85); }
+    30% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ---------- Input row ---------- */
   #inputRow {
-    display: flex; gap: 8px; padding: 10px; background: var(--bg-panel);
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    padding-bottom: calc(10px + var(--safe-bottom));
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border-subtle);
   }
   #msgInput {
-    flex: 1; border: none; border-radius: 10px; padding: 12px; font-size: 15px;
-    background: #1b1f26; color: var(--fg-text);
+    flex: 1;
+    border: 1px solid var(--border-subtle);
+    outline: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 16px; /* 16px zabraňuje automatickému zoomu na iOS */
+    background: var(--bg-elevated);
+    color: var(--fg-text);
+    font-family: inherit;
+    transition: border-color 0.15s ease;
   }
+  #msgInput:focus { border-color: var(--accent-end); }
+  #msgInput::placeholder { color: var(--fg-muted); }
+
   #sendBtn {
-    border: none; border-radius: 10px; padding: 0 18px; font-weight: 700;
-    background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: #04141a;
+    border: none;
+    border-radius: 12px;
+    padding: 0 18px;
+    height: 44px;
+    font-weight: 700;
+    font-size: 14.5px;
+    background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+    color: #06141c;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: opacity 0.15s ease, transform 0.1s ease;
   }
-  .typing { align-self: flex-start; color: #9fb3c8; font-size: 13px; padding-left: 4px; }
+  #sendBtn:active { transform: scale(0.96); }
+  #sendBtn:disabled { opacity: 0.5; }
+
+  /* ---------- Settings ---------- */
+  #settingsOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 10, 14, 0.55);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+    z-index: 20;
+  }
+  #settingsOverlay.open { opacity: 1; pointer-events: auto; }
+
+  #settingsPanel {
+    background: var(--bg-panel);
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid var(--border-subtle);
+    border-bottom: none;
+    border-radius: 18px 18px 0 0;
+    padding: 22px 20px;
+    padding-bottom: calc(22px + var(--safe-bottom));
+    transform: translateY(12px);
+    transition: transform 0.18s ease;
+  }
+  #settingsOverlay.open #settingsPanel { transform: translateY(0); }
+
+  #settingsPanel .handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--border-subtle);
+    margin: 0 auto 16px auto;
+  }
+  #settingsPanel h2 {
+    margin: 0 0 18px 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--fg-text);
+  }
+  .settings-row { margin-bottom: 16px; }
+  .settings-row:last-of-type { margin-bottom: 0; }
+  .settings-row label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--fg-muted);
+    margin-bottom: 5px;
+  }
+  .settings-row select {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-elevated);
+    color: var(--fg-text);
+    font-size: 14.5px;
+    font-family: inherit;
+    appearance: none;
+  }
+  .settings-row .value { font-size: 14.5px; color: var(--fg-text); }
+  .settings-row a { color: var(--accent-end); text-decoration: none; font-weight: 600; }
+  .settings-row a:active { opacity: 0.7; }
+
+  #closeSettings {
+    display: block;
+    margin-top: 20px;
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14.5px;
+    background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+    color: #06141c;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
 </style>
 </head>
 <body>
@@ -102,13 +291,14 @@
   </header>
   <div id="chat"></div>
   <div id="inputRow">
-    <input id="msgInput" type="text" placeholder="Napiš zprávu..." autocomplete="off" />
+    <input id="msgInput" type="text" placeholder="Napiš zprávu..." autocomplete="off" autocapitalize="sentences" />
     <button id="sendBtn">Odeslat</button>
   </div>
 </div>
 
 <div id="settingsOverlay">
   <div id="settingsPanel">
+    <div class="handle"></div>
     <h2>Nastavení</h2>
     <div class="settings-row">
       <label>Model</label>
@@ -134,8 +324,8 @@
 
 <script>
   // Adresa tvého proxy serveru - uprav podle nasazení
-  const PROXY_URL = "https://aiserver-p0qe.onrender.com/api/chat";
-  const APP_SECRET = "7q5j4d3j95p4a2z84r5d6g1cv97jds4";
+  const PROXY_URL = "https://tvuj-proxy-server.cz/api/chat";
+  const APP_SECRET = ""; // musí odpovídat APP_SECRET na serveru, pokud ho používáš
 
   const chat = document.getElementById("chat");
   const input = document.getElementById("msgInput");
@@ -161,7 +351,7 @@
 
     const typing = document.createElement("div");
     typing.className = "typing";
-    typing.textContent = "BorgAI píše...";
+    typing.innerHTML = "<span></span><span></span><span></span>";
     chat.appendChild(typing);
     chat.scrollTop = chat.scrollHeight;
     sendBtn.disabled = true;
@@ -186,9 +376,10 @@
       history.push({ role: "assistant", content: data.reply });
     } catch (e) {
       typing.remove();
-      addBubble("Borgoš asi chrápe, nech ho být.", "ai");
+      addBubble("Nepodařilo se spojit s BorgAI. Zkontroluj připojení.", "ai");
     } finally {
       sendBtn.disabled = false;
+      input.focus({ preventScroll: true });
     }
   }
 
