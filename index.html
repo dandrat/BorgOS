@@ -1,412 +1,217 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BorgOS — bez klobouku bos</title>
-<meta name="description" content="BorgOS je odlehčená linuxová distribuce s XFCE, postavená na Debianu. Ke stažení pro Intel/AMD i ARM.">
-
-<!-- Open Graph -->
-<meta property="og:title" content="BorgOS">
-<meta property="og:description" content="Lehký Linux postavený na Debianu, s vlastní sadou nástrojů.">
-<meta property="og:image" content="assets/hexagon-512.png">
-<meta property="og:type" content="website">
-
-<link rel="icon" type="image/png" href="assets/favicon.png">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="BorgAI" />
+<title>BorgAI</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
 <style>
   :root {
-    --bg-deep: #030712;
-    --bg: #0b1329;
-    --panel: #0f1a33;
-    --panel-line: #1c2e54;
-    --cyan: #00f2fe;
-    --blue: #4facfe;
-    --text: #d7f5ff;
-    --text-dim: #7fa3bd;
-    --text-bright: #eefcff;
+    --accent-start: #00f2fe;
+    --accent-end: #4facfe;
+    --bg-dark: #1b1f26;
+    --bg-panel: #242933;
+    --fg-text: #e6f1ff;
   }
-
   * { box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', -apple-system, sans-serif;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
+  html, body {
+    margin: 0; height: 100%; background: var(--bg-dark); color: var(--fg-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
-
-  h1, h2, h3, .display {
-    font-family: 'Space Grotesk', sans-serif;
-    color: var(--text-bright);
-    margin: 0;
-    letter-spacing: -0.01em;
+  #app { display: flex; flex-direction: column; height: 100dvh; }
+  header {
+    background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+    color: #04141a; font-weight: 700; padding: 14px 16px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+    font-size: 17px;
+    display: flex; align-items: center; gap: 10px;
   }
-
-  a { color: var(--cyan); }
-
-  .wrap {
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: 0 24px;
+  header img.logo { width: 26px; height: 26px; }
+  header .title { flex: 1; }
+  header .settings-btn {
+    background: none; border: none; padding: 4px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
   }
+  header .settings-btn svg { width: 22px; height: 22px; stroke: #04141a; }
 
-  /* ---------- Hero ---------- */
-
-  .hero {
-    position: relative;
-    padding: 96px 24px 120px;
-    text-align: center;
-    overflow: hidden;
-    background:
-      radial-gradient(ellipse 800px 500px at 50% 15%, rgba(0,242,254,0.10), transparent 60%),
-      radial-gradient(ellipse 1200px 800px at 50% 0%, var(--bg) 0%, var(--bg-deep) 100%);
+  #settingsOverlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: flex-end; justify-content: center; z-index: 20;
   }
-
-  .hero-logo-wrap {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 28px;
+  #settingsOverlay.open { display: flex; }
+  #settingsPanel {
+    background: var(--bg-panel); width: 100%; max-width: 480px;
+    border-radius: 16px 16px 0 0; padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
   }
-
-  .hero-logo-glow {
-    position: absolute;
-    inset: -30px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,242,254,0.35), transparent 70%);
-    filter: blur(18px);
-    animation: pulse 3.2s ease-in-out infinite;
+  #settingsPanel h2 {
+    margin: 0 0 16px 0; font-size: 18px;
+    background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.55; transform: scale(0.96); }
-    50%      { opacity: 1;    transform: scale(1.06); }
+  .settings-row { margin-bottom: 14px; }
+  .settings-row label { display: block; font-size: 12px; color: #9fb3c8; margin-bottom: 4px; }
+  .settings-row select {
+    width: 100%; padding: 10px; border-radius: 8px; border: none;
+    background: #1b1f26; color: var(--fg-text); font-size: 14px;
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    .hero-logo-glow { animation: none; opacity: 0.8; }
+  .settings-row .value { font-size: 15px; }
+  .settings-row a { color: var(--accent-end); text-decoration: none; }
+  #closeSettings {
+    display: block; margin-top: 18px; width: 100%; padding: 12px; border: none;
+    border-radius: 10px; font-weight: 700; background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+    color: #04141a;
   }
-
-  .hero-logo {
-    position: relative;
-    width: 112px;
-    height: 112px;
-    display: block;
+  #chat { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .bubble { max-width: 78%; padding: 10px 12px; border-radius: 14px; line-height: 1.4; font-size: 15px; white-space: pre-wrap; }
+  .bubble.ai { align-self: flex-start; background: var(--bg-panel); border-bottom-left-radius: 4px; }
+  .bubble.user {
+    align-self: flex-end; background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+    color: #04141a; border-bottom-right-radius: 4px;
   }
-
-  .hero h1 {
-    font-size: clamp(2.6rem, 6vw, 4.2rem);
-    font-weight: 700;
+  #inputRow {
+    display: flex; gap: 8px; padding: 10px; background: var(--bg-panel);
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
   }
-
-  .hero .tagline {
-    max-width: 560px;
-    margin: 20px auto 0;
-    font-size: 1.2rem;
-    color: var(--text);
+  #msgInput {
+    flex: 1; border: none; border-radius: 10px; padding: 12px; font-size: 15px;
+    background: #1b1f26; color: var(--fg-text);
   }
-
-  .hero-actions {
-    margin-top: 44px;
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-    flex-wrap: wrap;
+  #sendBtn {
+    border: none; border-radius: 10px; padding: 0 18px; font-weight: 700;
+    background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: #04141a;
   }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 13px 26px;
-    border-radius: 8px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 0.98rem;
-    text-decoration: none;
-    border: 1px solid var(--panel-line);
-    transition: border-color 0.15s ease, background 0.15s ease;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--cyan), var(--blue));
-    color: var(--bg-deep);
-    border: none;
-  }
-  .btn-primary:hover { filter: brightness(1.08); }
-
-  .btn-ghost {
-    color: var(--text-bright);
-    background: transparent;
-  }
-  .btn-ghost:hover { border-color: var(--cyan); }
-
-  /* ---------- Sekce obecně ---------- */
-
-  section { padding: 88px 0; }
-
-  .section-head {
-    max-width: 560px;
-    margin: 0 0 48px;
-  }
-  .section-head h2 {
-    font-size: 2rem;
-    font-weight: 600;
-  }
-  .section-head p {
-    color: var(--text-dim);
-    margin-top: 12px;
-    font-size: 1.05rem;
-  }
-
-  /* ---------- Aplikace ---------- */
-
-  .apps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--panel-line);
-    border: 1px solid var(--panel-line);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .app-card {
-    background: var(--panel);
-    padding: 36px 30px;
-  }
-
-  .app-card img {
-    width: 56px;
-    height: 56px;
-    display: block;
-    margin-bottom: 20px;
-  }
-
-  .app-card h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-
-  .app-card p {
-    color: var(--text-dim);
-    font-size: 0.96rem;
-    margin: 0;
-  }
-
-  /* ---------- Stažení ---------- */
-
-  .download {
-    background: var(--bg-deep);
-  }
-
-  .arch-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border: 1px solid var(--panel-line);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .arch-panel {
-    padding: 40px 34px;
-    background: var(--panel);
-    position: relative;
-  }
-  .arch-panel + .arch-panel {
-    border-left: 1px solid var(--panel-line);
-  }
-
-  .arch-kicker {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-
-  .arch-panel h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 14px;
-  }
-
-  .arch-panel p {
-    color: var(--text-dim);
-    font-size: 0.95rem;
-    margin-bottom: 24px;
-  }
-
-  .arch-meta {
-    display: flex;
-    gap: 18px;
-    margin-bottom: 26px;
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    flex-wrap: wrap;
-  }
-  .arch-meta strong {
-    color: var(--text-bright);
-    font-weight: 600;
-  }
-
-  .btn-block {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-  }
-
-  @media (max-width: 720px) {
-    .arch-grid { grid-template-columns: 1fr; }
-    .arch-panel + .arch-panel { border-left: none; border-top: 1px solid var(--panel-line); }
-    .apps { grid-template-columns: 1fr; }
-  }
-
-  /* ---------- Požadavky ---------- */
-
-  .specs {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 32px;
-  }
-  .spec dt {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-  .spec dd {
-    margin: 0;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.3rem;
-    color: var(--text-bright);
-    font-weight: 600;
-  }
-  @media (max-width: 720px) {
-    .specs { grid-template-columns: 1fr 1fr; }
-  }
-
-  footer {
-    padding: 48px 0 64px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 0.9rem;
-  }
+  .typing { align-self: flex-start; color: #9fb3c8; font-size: 13px; padding-left: 4px; }
 </style>
 </head>
 <body>
-
-<header class="hero">
-  <div class="hero-logo-wrap">
-    <div class="hero-logo-glow"></div>
-    <img class="hero-logo" src="assets/hexagon-512.png" alt="BorgOS logo">
+<div id="app">
+  <header>
+    <img class="logo" src="icons/logo.svg" alt="BorgAI logo" />
+    <span class="title">BorgAI</span>
+    <button class="settings-btn" id="settingsBtn" aria-label="Nastavení">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </header>
+  <div id="chat"></div>
+  <div id="inputRow">
+    <input id="msgInput" type="text" placeholder="Napiš zprávu..." autocomplete="off" />
+    <button id="sendBtn">Odeslat</button>
   </div>
-  <h1>BorgOS</h1>
-  <p class="tagline">Lehký operační systém pro běh na všech strojích, s vlastní sadou nástrojů rovnou na palubě.</p>
-  <div class="hero-actions">
-    <a href="#stazeni" class="btn btn-primary">Stáhnout BorgOS</a>
-    <a href="#aplikace" class="btn btn-ghost">Co je uvnitř</a>
-  </div>
-</header>
+</div>
 
-<section id="aplikace">
-  <div class="wrap">
-    <div class="section-head">
-      <h2>Vlastní nástroje napisane</h2>
-      <p>BorgOS má rovnou v sobě tři aplikace, které občas i fungují.</p>
+<div id="settingsOverlay">
+  <div id="settingsPanel">
+    <h2>Nastavení</h2>
+    <div class="settings-row">
+      <label>Model</label>
+      <select disabled>
+        <option selected>BorgAI v1.2</option>
+      </select>
     </div>
-    <div class="apps">
-      <div class="app-card">
-        <img src="assets/app-borgovirus.png" alt="BorgoVirus">
-        <h3>BorgoVirus</h3>
-        <p>Antivirová kontrola, plus čistič systému — uvolní místo od cache balíčků a starých logů.</p>
-      </div>
-      <div class="app-card">
-        <img src="assets/app-borgupdate.png" alt="BorgUpdate">
-        <h3>BorgUpdate</h3>
-        <p>Přehledný seznam dostupných aktualizací s výběrem — nainstaluješ jen to, co chceš.</p>
-      </div>
-      <div class="app-card">
-        <img src="assets/app-borgmonitor.png" alt="BorgMonitor">
-        <h3>BorgMonitor</h3>
-        <p>Správce úloh, živé grafy CPU a paměti, to určitě jiní nemají:)</p>
-      </div>
+    <div class="settings-row">
+      <label>Vývojář</label>
+      <div class="value">Borgo Industries</div>
     </div>
-  </div>
-</section>
-
-<section id="stazeni" class="download">
-  <div class="wrap">
-    <div class="section-head">
-      <h2>Stáhnout BorgOS (připravujeme)</h2>
-      <p>Vyber verzi podle procesoru ve tvém počítači. Obě bootují přes UEFI, u Intel/AMD i přes starší Legacy.</p>
+    <div class="settings-row">
+      <label>Poslední aktualizace</label>
+      <div class="value">31.8.2026</div>
     </div>
-
-    <div class="arch-grid">
-      <div class="arch-panel">
-        <div class="arch-kicker">Intel / AMD</div>
-        <h3>amd64</h3>
-        <p>Pro naprostou většinu stolních počítačů a notebooků — Intel i AMD.</p>
-        <div class="arch-meta">
-          <span><strong>BIOS</strong> i UEFI</span>
-          <span><strong>~2 GB</strong> RAM doporučeno</span>
-        </div>
-        <!-- TODO: halooo, kdy uz tu das konecne iso soubory debile? -->
-        <a href="#" class="btn btn-primary btn-block">Stáhnout pro Intel/AMD</a>
-      </div>
-      <div class="arch-panel">
-        <div class="arch-kicker">ARM</div>
-        <h3>arm64</h3>
-        <p>Pro ARM64 zařízení a virtuální stroje na Apple Silicon Mac (UTM, VMware Fusion).</p>
-        <div class="arch-meta">
-          <span><strong>Jen UEFI</strong></span>
-          <span><strong>~2 GB</strong> RAM doporučeno</span>
-        </div>
-        <!-- TODO: a tady kdy to bude?? co? -->
-        <a href="#" class="btn btn-primary btn-block">Stáhnout pro ARM</a>
-      </div>
+    <div class="settings-row">
+      <label>Web</label>
+      <div class="value"><a href="https://dandrat.github.io/BorgOS/" target="_blank" rel="noopener">BorgOS</a></div>
     </div>
+    <button id="closeSettings">Zavřít</button>
   </div>
-</section>
+</div>
 
-<section>
-  <div class="wrap">
-    <div class="section-head">
-      <h2>Systémové požadavky</h2>
-      <p>CPU může být jakýkoliv 64bit x86 (amd64).</p>
-    </div>
-    <dl class="specs">
-      <div class="spec">
-        <dt>RAM — minimum</dt>
-        <dd>1 GB</dd>
-      </div>
-      <div class="spec">
-        <dt>RAM — doporučeno</dt>
-        <dd>2 GB</dd>
-      </div>
-      <div class="spec">
-        <dt>Disk — minimum</dt>
-        <dd>8 GB</dd>
-      </div>
-      <div class="spec">
-        <dt>Disk — doporučeno</dt>
-        <dd>20 GB</dd>
-      </div>
-    </dl>
-  </div>
-</section>
+<script>
+  // Adresa tvého proxy serveru - uprav podle nasazení
+  const PROXY_URL = "https://tvuj-proxy-server.cz/api/chat";
+  const APP_SECRET = ""; // musí odpovídat APP_SECRET na serveru, pokud ho používáš
 
-<footer>
-  <div class="wrap">
-    BorgOS — systém jinak úplně k hovnu ale je to můj systém žejo:).
-  </div>
-</footer>
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("msgInput");
+  const sendBtn = document.getElementById("sendBtn");
 
+  let history = [];
+
+  function addBubble(text, role) {
+    const div = document.createElement("div");
+    div.className = "bubble " + (role === "user" ? "user" : "ai");
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    addBubble(text, "user");
+    history.push({ role: "user", content: text });
+
+    const typing = document.createElement("div");
+    typing.className = "typing";
+    typing.textContent = "BorgAI píše...";
+    chat.appendChild(typing);
+    chat.scrollTop = chat.scrollHeight;
+    sendBtn.disabled = true;
+
+    try {
+      const res = await fetch(PROXY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(APP_SECRET ? { "x-app-secret": APP_SECRET } : {}),
+        },
+        body: JSON.stringify({ messages: history }),
+      });
+      const data = await res.json();
+      typing.remove();
+
+      if (!res.ok) {
+        addBubble(data.error || "BorgAI momentálně neodpovídá.", "ai");
+        return;
+      }
+      addBubble(data.reply, "ai");
+      history.push({ role: "assistant", content: data.reply });
+    } catch (e) {
+      typing.remove();
+      addBubble("Nepodařilo se spojit s BorgAI. Zkontroluj připojení.", "ai");
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsOverlay = document.getElementById("settingsOverlay");
+  const closeSettings = document.getElementById("closeSettings");
+
+  settingsBtn.addEventListener("click", () => settingsOverlay.classList.add("open"));
+  closeSettings.addEventListener("click", () => settingsOverlay.classList.remove("open"));
+  settingsOverlay.addEventListener("click", (e) => {
+    if (e.target === settingsOverlay) settingsOverlay.classList.remove("open");
+  });
+
+  addBubble("Ahoj! Jsem BorgAI. Jak ti mohu pomoct?", "ai");
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
 </body>
 </html>
