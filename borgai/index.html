@@ -134,8 +134,8 @@
 
 <script>
   // Adresa tvého proxy serveru - uprav podle nasazení
-  const PROXY_URL = "https://tvuj-proxy-server.cz/api/chat";
-  const APP_SECRET = ""; // musí odpovídat APP_SECRET na serveru, pokud ho používáš
+  const PROXY_URL = "https://aiserver-p0qe.onrender.com/api/chat";
+  const APP_SECRET = "7q5j4d3j95p4a2z84r5d6g1cv97jds4";
 
   const chat = document.getElementById("chat");
   const input = document.getElementById("msgInput");
@@ -186,7 +186,7 @@
       history.push({ role: "assistant", content: data.reply });
     } catch (e) {
       typing.remove();
-      addBubble("Nepodařilo se spojit s BorgAI. Zkontroluj připojení.", "ai");
+      addBubble("Borgoš asi chrápe, nech ho být.", "ai");
     } finally {
       sendBtn.disabled = false;
     }
